@@ -6,7 +6,8 @@
     "dev": "concurrently \"npm run dev:client\" \"npm run dev:server\"",
     "dev:client": "next dev",
     "dev:server": "cd server && npm run dev",
-    "build": "next build && cd server && npm run build",
+    "build": "next build",
+    "build:server": "cd server && npm run build",
     "start": "next start",
     "start:server": "cd server && npm start",
     "lint": "next lint"
