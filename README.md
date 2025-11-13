@@ -1,98 +1,271 @@
 # Get-a-clue
 
-A mystery detective game inspired by classic whodunit board games. Solve crimes by gathering clues, exploring rooms, and making accusations!
+A mystery detective board game where you navigate a grid-based mansion, solve cases, and gain experience. Play solo or team up with other detectives in real-time multiplayer!
 
 ## Features
 
-- 🏛️ **Multi-room mansion** with 10 unique locations to explore
-- 🎲 **Dice-based movement** system for room navigation
-- 🔍 **Clue discovery** - Each room contains unique clues
-- 👥 **6 suspects** and **3 potential victims** with gender-appropriate names
-- 🔪 **6 different weapons** and **6 motives** to investigate
-- 🎮 **Random generation** - Every game is unique
-- 📱 **Progressive Web App** - Install and play offline
-- 🎨 **Vintage case file aesthetic** with typewriter text and coffee stains
+### 🎮 Unified Board Game Experience
+- **Grid-based Movement** - Navigate a 9x9 mansion grid with connected rooms
+- **Character Selection** - Choose from 6 unique detective avatars
+- **XP & Leveling System** - Gain experience by solving cases and level up
+- **Cases Solved Tracking** - Track your detective career progress
+
+### 🌐 Solo & Multiplayer Modes
+- **Solo Play** - Play alone and hone your detective skills
+- **Real-time Multiplayer** - Create or join rooms with simple 6-character codes
+- **Live Updates** - See other players move in real-time via Socket.IO
+- **Player Stats** - View all connected players' levels and cases solved
+
+### 🎴 Card Collection (Coming Soon)
+- Placeholder UI for future Firebase integration
+- Card packs, trading, and marketplace features planned
+
+### 🎨 Vintage Detective Aesthetic
+- Case file styling with typewriter text
+- Worn edges and coffee stain effects
+- Retro detective bureau design
 
 ## Getting Started
 
+### Prerequisites
+
+- Node.js 18+ installed
+- npm or yarn package manager
+
+### Installation
+
+1. Clone the repository:
+```bash
+git clone https://github.com/ray-seal/Get-a-clue.git
+cd Get-a-clue
+```
+
+2. Install dependencies for both client and server:
+```bash
+# Install client dependencies
+npm install
+
+# Install server dependencies
+cd server
+npm install
+cd ..
+```
+
 ### Development
 
+#### Run Both Client & Server Together (Recommended)
+
 ```bash
-npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to play the game.
+This starts:
+- **Client** at [http://localhost:3000](http://localhost:3000)
+- **Server** at [http://localhost:3001](http://localhost:3001)
+
+#### Run Client Only (Solo Mode Only)
+
+```bash
+npm run dev:client
+```
+
+#### Run Server Only
+
+```bash
+npm run dev:server
+```
 
 ### Production Build
 
 ```bash
+# Build both client and server
 npm run build
+
+# Start client
 npm start
+
+# Start server (in separate terminal)
+npm run start:server
 ```
 
-### Deploy to Vercel
+### Environment Variables
 
-This app is optimized for Vercel deployment. Simply connect your GitHub repository to Vercel for automatic deployments.
+Create a `.env.local` file in the root directory (optional):
+
+```env
+NEXT_PUBLIC_SERVER_URL=http://localhost:3001
+```
+
+For the server, you can set (optional):
+
+```env
+PORT=3001
+CLIENT_URL=http://localhost:3000
+```
 
 ## How to Play
 
-1. **Start Investigation** - Click "OPEN INVESTIGATION" on the home screen
-2. **Roll the Dice** - Roll to move between connected rooms
-3. **Explore Rooms** - Discover clues in each room you visit
-4. **Gather Evidence** - Collect clues about suspects, victims, weapons, motives, and locations
-5. **Make Your Accusation** - When ready, accuse a suspect, victim, weapon, motive, and location
-6. **Solve the Mystery** - Win by correctly identifying all elements of the crime!
+### Solo Mode
 
-## Game Elements
+1. Go to the home page
+2. Click **"PLAY SOLO"**
+3. Choose your detective name and avatar
+4. Use **arrow keys** or **click adjacent tiles** to move around the grid
+5. Click **"Solve Case"** to gain XP and level up
+6. Track your progress in the HUD
 
-### Suspects
-- Alexander Grey (Male)
-- Charlotte Reed (Female)
-- Benjamin Stone (Male)
-- Victoria Hart (Female)
-- William Chase (Male)
-- Sophia Rivers (Female)
+### Multiplayer Mode
 
-### Victims
-- Victor Mansion (Male)
-- Elizabeth Blackwood (Female)
-- James Ashworth (Male)
+#### Creating a Room
 
-### Weapons
-- Silver Candlestick
-- Silk Rope
-- Ceremonial Dagger
-- Poison Vial
-- Antique Revolver
-- Heavy Wrench
+1. Go to the home page
+2. Click **"MULTIPLAYER"**
+3. Click **"CREATE ROOM"**
+4. Choose your detective name and avatar
+5. Share the **6-character room code** with friends
+6. Play together in real-time!
 
-### Motives
-- Inheritance Dispute
-- Personal Revenge
-- Blackmail Gone Wrong
-- Professional Jealousy
-- Financial Debt
-- Cover Up
+#### Joining a Room
 
-### Rooms
-- Grand Foyer
-- Private Study
-- Library
-- Conservatory
-- Grand Ballroom
-- Dining Hall
-- Kitchen
-- Wine Cellar
-- Billiard Room
-- Lounge
+1. Go to the home page
+2. Click **"MULTIPLAYER"**
+3. Enter the **6-character room code** from your friend
+4. Click **"JOIN"**
+5. Choose your detective name and avatar
+6. Start playing!
+
+### Controls
+
+- **Arrow Keys** or **WASD** - Move your detective
+- **Click Tile** - Move to an adjacent tile
+- **Solve Case Button** - Gain +50 XP and increment cases solved
+- **Card Collection Button** - View placeholder for future card features
+
+## Game Mechanics
+
+### Movement
+- Only adjacent tiles (north, south, east, west) are accessible
+- Walls block certain directions (shown as dark borders)
+- Both keyboard and mouse controls are supported
+
+### Experience & Leveling
+- Solving a case awards **50 XP**
+- Level formula: `level = floor(sqrt(xp/100)) + 1`
+- Level 1: 0-99 XP
+- Level 2: 100-399 XP
+- Level 3: 400-899 XP
+- And so on...
+
+### Multiplayer
+- Room codes are **6 alphanumeric characters** (lowercase)
+- Rooms stay active while players are connected
+- Inactive rooms are cleaned up after 30 minutes
+- All players see each other's movements and stats in real-time
 
 ## Technology Stack
 
-- **Next.js 15** - React framework
-- **TypeScript** - Type safety
-- **Tailwind CSS** - Styling
-- **PWA** - Progressive Web App support
+- **Next.js 16** - React framework with App Router
+- **TypeScript** - Type safety throughout
+- **Tailwind CSS** - Utility-first styling
+- **Socket.IO** - Real-time multiplayer communication
+- **Express** - Backend server framework
+- **nanoid** - Secure room code generation
+
+## Project Structure
+
+```
+Get-a-clue/
+├── app/                      # Next.js app directory
+│   ├── components/           # React components
+│   │   ├── CharacterSelect.tsx
+│   │   ├── GameBoard.tsx
+│   │   ├── HUD.tsx
+│   │   └── CardCollection.tsx
+│   ├── game/                 # Game page
+│   │   └── page.tsx
+│   └── page.tsx              # Home page
+├── lib/                      # Shared libraries
+│   ├── models/              # Data models
+│   │   ├── grid.ts          # Grid and room logic
+│   │   └── player.ts        # Player model
+│   ├── services/            # Services
+│   │   └── socket.ts        # Socket.IO client wrapper
+│   └── utils/               # Utilities
+│       └── leveling.ts      # XP and leveling logic
+├── server/                   # Backend server
+│   └── src/
+│       └── index.ts         # Socket.IO server
+└── public/                   # Static assets
+    └── assets/
+        └── characters/      # Character sprite SVGs
+```
+
+## Future Features (Not Yet Implemented)
+
+These features are planned for future releases:
+
+- 🔐 **Firebase Authentication** - Persistent user accounts
+- 🎴 **Card System** - Collectible mystery cards
+- 🏪 **Card Marketplace** - Buy, sell, and trade cards
+- 💾 **Persistent Rooms** - Rooms saved to Firestore
+- 📊 **Leaderboards** - Global player rankings
+- 🎯 **Achievements** - Unlock badges and rewards
+
+## Development Notes
+
+### Server Details
+
+- Default port: **3001**
+- Uses Socket.IO v4 for real-time communication
+- In-memory room storage (no database required for MVP)
+- Automatic cleanup of inactive rooms
+
+### Client Details
+
+- Built with Next.js 16 App Router
+- Client-side state management for solo mode
+- Socket.IO integration for multiplayer
+- Responsive design with Tailwind CSS
+
+## Deploy to Vercel
+
+### Client Deployment
+
+This app is optimized for Vercel deployment:
+
+1. Connect your GitHub repository to Vercel
+2. Set environment variable: `NEXT_PUBLIC_SERVER_URL` to your server URL
+3. Deploy!
+
+### Server Deployment
+
+The Socket.IO server needs to be deployed separately:
+
+1. Deploy to a Node.js hosting service (Railway, Render, Heroku, etc.)
+2. Set environment variables: `PORT` and `CLIENT_URL`
+3. Update client's `NEXT_PUBLIC_SERVER_URL` to point to deployed server
+
+## Troubleshooting
+
+### Multiplayer not working?
+
+- Ensure server is running on port 3001
+- Check console for Socket.IO connection errors
+- Verify `NEXT_PUBLIC_SERVER_URL` environment variable
+- Check firewall settings
+
+### Build errors?
+
+```bash
+# Clean install
+rm -rf node_modules package-lock.json
+npm install
+
+# Clean server install
+cd server
+rm -rf node_modules package-lock.json
+npm install
+```
 
 ## License
 

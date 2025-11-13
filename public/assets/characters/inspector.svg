@@ -1,0 +1,15 @@
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <!-- Inspector sprite - red -->
+  <circle cx="32" cy="32" r="28" fill="#EF4444"/>
+  <circle cx="32" cy="32" r="24" fill="#DC2626"/>
+  <!-- Hat -->
+  <rect x="18" y="12" width="28" height="8" fill="#991B1B" rx="2"/>
+  <!-- Eyes -->
+  <circle cx="24" cy="28" r="3" fill="white"/>
+  <circle cx="40" cy="28" r="3" fill="white"/>
+  <circle cx="24" cy="28" r="1.5" fill="black"/>
+  <circle cx="40" cy="28" r="1.5" fill="black"/>
+  <!-- Badge -->
+  <circle cx="32" cy="42" r="4" fill="#FBBF24"/>
+  <text x="32" y="44" font-size="5" text-anchor="middle" fill="#991B1B" font-weight="bold">I</text>
+</svg>

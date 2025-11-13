@@ -1,8 +1,12 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 
 export default function Home() {
+  const [showMultiplayer, setShowMultiplayer] = useState(false);
+  const [joinCode, setJoinCode] = useState('');
+
   return (
     <div className="min-h-screen flex items-center justify-center p-4 case-file">
       {/* Coffee stains positioned randomly */}
@@ -44,26 +48,83 @@ export default function Home() {
 
             <p className="stamped-text leading-loose">
               A mysterious incident has occurred at the grand estate. 
-              The case remains UNSOLVED. Multiple suspects, various motives, 
-              and scattered evidence across the mansion.
+              Navigate the grid-based mansion, solve cases, and gain experience
+              as a detective. Play solo or team up with other investigators!
             </p>
 
             <p className="stamped-text font-bold text-lg mt-4">
-              Your mission: Uncover the truth.
+              Choose your mode of investigation:
             </p>
           </div>
 
-          {/* Start button with blood drip */}
-          <div className="mt-10 text-center">
-            <Link 
-              href="/game"
-              className="inline-block bg-red-800 hover:bg-red-900 text-white font-bold py-4 px-12 rounded-sm 
-                       shadow-lg transition-all duration-200 hover:shadow-xl transform hover:scale-105 
-                       typewriter text-xl blood-drip"
-            >
-              OPEN INVESTIGATION
-            </Link>
-          </div>
+          {/* Game Mode Selection */}
+          {!showMultiplayer ? (
+            <div className="mt-10 space-y-4">
+              {/* Solo Play Button */}
+              <Link 
+                href="/game?mode=solo"
+                className="block bg-blue-700 hover:bg-blue-800 text-white font-bold py-4 px-12 rounded-sm 
+                         shadow-lg transition-all duration-200 hover:shadow-xl transform hover:scale-105 
+                         typewriter text-xl text-center"
+              >
+                🎮 PLAY SOLO
+              </Link>
+
+              {/* Multiplayer Button */}
+              <button
+                onClick={() => setShowMultiplayer(true)}
+                className="w-full bg-green-700 hover:bg-green-800 text-white font-bold py-4 px-12 rounded-sm 
+                         shadow-lg transition-all duration-200 hover:shadow-xl transform hover:scale-105 
+                         typewriter text-xl"
+              >
+                🌐 MULTIPLAYER
+              </button>
+            </div>
+          ) : (
+            <div className="mt-10 space-y-4">
+              {/* Back Button */}
+              <button
+                onClick={() => setShowMultiplayer(false)}
+                className="text-gray-600 hover:text-gray-800 typewriter text-sm mb-2"
+              >
+                ← Back to mode selection
+              </button>
+
+              {/* Create Room */}
+              <Link 
+                href="/game?mode=multiplayer"
+                className="block bg-green-700 hover:bg-green-800 text-white font-bold py-4 px-12 rounded-sm 
+                         shadow-lg transition-all duration-200 hover:shadow-xl transform hover:scale-105 
+                         typewriter text-xl text-center"
+              >
+                ➕ CREATE ROOM
+              </Link>
+
+              {/* Join Room */}
+              <div className="space-y-2">
+                <label className="block typewriter font-bold text-gray-800">
+                  Or join an existing room:
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={joinCode}
+                    onChange={(e) => setJoinCode(e.target.value.toLowerCase())}
+                    placeholder="Enter 6-digit code"
+                    maxLength={6}
+                    className="flex-1 p-3 border-2 border-gray-400 rounded typewriter text-lg uppercase focus:border-green-600 focus:outline-none"
+                  />
+                  <Link
+                    href={joinCode.length === 6 ? `/game?mode=multiplayer&room=${encodeURIComponent(joinCode)}` : '#'}
+                    className={`bg-red-800 hover:bg-red-900 text-white font-bold py-3 px-6 rounded typewriter
+                      ${joinCode.length !== 6 ? 'opacity-50 pointer-events-none' : ''}`}
+                  >
+                    JOIN
+                  </Link>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Signature line */}
           <div className="mt-12 pt-6 border-t border-gray-400">
