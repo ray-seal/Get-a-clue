@@ -115,7 +115,7 @@ export default function Home() {
                     className="flex-1 p-3 border-2 border-gray-400 rounded typewriter text-lg uppercase focus:border-green-600 focus:outline-none"
                   />
                   <Link
-                    href={joinCode.length === 6 ? `/game?mode=multiplayer&room=${joinCode}` : '#'}
+                    href={joinCode.length === 6 ? `/game?mode=multiplayer&room=${encodeURIComponent(joinCode)}` : '#'}
                     className={`bg-red-800 hover:bg-red-900 text-white font-bold py-3 px-6 rounded typewriter
                       ${joinCode.length !== 6 ? 'opacity-50 pointer-events-none' : ''}`}
                   >
