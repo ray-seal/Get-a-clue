@@ -107,8 +107,8 @@ export default function GameBoard({
       {/* Instructions */}
       <div className="bg-yellow-50 border-l-4 border-yellow-600 p-3">
         <p className="typewriter text-sm text-gray-800">
-          {currentPlayer?.movementPointsRemaining > 0 
-            ? `You have ${currentPlayer.movementPointsRemaining} movement points. Click a tile or use arrow keys to move.`
+          {(currentPlayer?.movementPointsRemaining ?? 0) > 0 
+            ? `You have ${currentPlayer?.movementPointsRemaining ?? 0} movement points. Click a tile or use arrow keys to move.`
             : 'Roll dice to get movement points, then move around the mansion!'}
         </p>
       </div>
