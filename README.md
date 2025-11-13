@@ -110,9 +110,11 @@ CLIENT_URL=http://localhost:3000
 1. Go to the home page
 2. Click **"PLAY SOLO"**
 3. Choose your detective name and avatar
-4. Use **arrow keys** or **click adjacent tiles** to move around the grid
-5. Click **"Solve Case"** to gain XP and level up
-6. Track your progress in the HUD
+4. Click **"🎲 Roll Dice"** to get movement points (1-6 steps)
+5. Use **arrow keys** or **click highlighted tiles** to move around the mansion
+6. Click **"🔍 Search for Clues"** when in a room to find evidence
+7. Click **"Solve Case"** to gain +50 XP and increment cases solved
+8. Track your progress, clues found, and XP in the HUD
 
 ### Multiplayer Mode
 
@@ -136,19 +138,43 @@ CLIENT_URL=http://localhost:3000
 
 ### Controls
 
-- **Arrow Keys** or **WASD** - Move your detective
-- **Click Tile** - Move to an adjacent tile
+- **Roll Dice Button** - Roll a die to get 1-6 movement points
+- **Arrow Keys** or **WASD** - Move your detective (uses movement points)
+- **Click Tile** - Move to a highlighted tile within your movement range
+- **Search for Clues Button** - Search the current room for clues (awards XP)
 - **Solve Case Button** - Gain +50 XP and increment cases solved
 - **Card Collection Button** - View placeholder for future card features
 
 ## Game Mechanics
 
-### Movement
+### Dice-Based Movement
+- Click **"Roll Dice"** to get 1-6 movement points at the start of your turn
+- Each move to an adjacent tile costs 1 movement point
 - Only adjacent tiles (north, south, east, west) are accessible
-- Walls block certain directions (shown as dark borders)
-- Both keyboard and mouse controls are supported
+- Green highlighted tiles show where you can move with remaining points
+- Roll dice again when you run out of movement points
+
+### Clue Searching
+- When you enter a room, a **"Search for Clues"** button appears
+- Different rooms have different probabilities of containing clues
+- Finding a clue awards XP (15-40 XP depending on the clue)
+- Clues are tracked in your inventory (shown in HUD as "Clues Found")
+- Each clue can only be found once per player
+
+### Room System
+- The mansion contains 9 distinct rooms:
+  - **Library** - High chance for documents and books
+  - **Study** - Letters, receipts, and keys
+  - **Dining Hall** - Fingerprints and weapons
+  - **Kitchen** - Footprints and evidence
+  - **Ballroom** - Fabric and photographs
+  - **Lounge** - Cigars and fingerprints
+  - **Conservatory** - Outdoor evidence
+  - **Billiard Room** - Social evidence
+  - **Grand Foyer** - Entrance evidence
 
 ### Experience & Leveling
+- Finding clues awards **15-40 XP** depending on the clue type
 - Solving a case awards **50 XP**
 - Level formula: `level = floor(sqrt(xp/100)) + 1`
 - Level 1: 0-99 XP
@@ -160,7 +186,8 @@ CLIENT_URL=http://localhost:3000
 - Room codes are **6 alphanumeric characters** (lowercase)
 - Rooms stay active while players are connected
 - Inactive rooms are cleaned up after 30 minutes
-- All players see each other's movements and stats in real-time
+- All players see each other's movements, dice rolls, and clue discoveries in real-time
+- Each player has their own movement points and inventory
 
 ## Technology Stack
 
@@ -303,6 +330,59 @@ npm install -g pm2
 cd server
 pm2 start dist/index.js --name "get-a-clue-server"
 ```
+
+## Manual QA / Testing
+
+### Testing Dice-Based Movement and Clue System
+
+1. **Start both client and server**:
+   ```bash
+   npm run dev
+   ```
+   This will start the client at http://localhost:3000 and server at http://localhost:3001
+
+2. **Test Solo Mode**:
+   - Go to http://localhost:3000
+   - Click "PLAY SOLO"
+   - Choose a character name and avatar
+   - Click "Roll Dice" - should display a number 1-6 and show movement points in HUD
+   - Click a highlighted green tile or use arrow keys to move
+   - Movement points should decrease with each move
+   - When you enter a room, "Search for Clues" button should appear
+   - Click "Search for Clues" - should either find a clue (with XP award) or show "nothing found"
+   - Clues found should increment in the HUD
+   - XP should increase when clues are found
+
+3. **Test Multiplayer Mode**:
+   - Open two browser windows (or incognito + regular)
+   - In Window 1:
+     - Go to http://localhost:3000
+     - Click "MULTIPLAYER" → "CREATE ROOM"
+     - Choose character and note the room code
+   - In Window 2:
+     - Go to http://localhost:3000
+     - Click "MULTIPLAYER"
+     - Enter the room code from Window 1
+     - Choose character
+   - Both players should see each other on the board
+   - Test in Window 1:
+     - Roll dice - Window 2 should see "[Player] rolled X"
+     - Move around - Window 2 should see player move
+     - Search for clues - Window 2 should see "[Player] found a clue"
+   - Test in Window 2:
+     - Repeat above - Window 1 should see all actions
+   - Both players should maintain independent movement points and inventories
+
+4. **Expected Behaviors**:
+   - ✅ Dice rolls generate 1-6 movement points
+   - ✅ Movement consumes points (1 per tile)
+   - ✅ Can only move when movement points > 0
+   - ✅ Green overlay shows reachable tiles
+   - ✅ "Search for Clues" appears when in a room
+   - ✅ Clue searches award 15-40 XP
+   - ✅ Each clue can only be found once per player
+   - ✅ All actions synchronize in multiplayer
+   - ✅ HUD displays movement points, clues found, XP, level
 
 ## Troubleshooting
 

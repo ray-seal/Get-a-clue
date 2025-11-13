@@ -1,5 +1,13 @@
 // Player model for multiplayer game
 
+export interface Clue {
+  id: string;
+  type: string;
+  description: string;
+  xpAward: number;
+  roomId: string;
+}
+
 export interface Player {
   id: string;
   name: string;
@@ -10,6 +18,8 @@ export interface Player {
   level: number;
   casesSolved: number;
   connected: boolean;
+  movementPointsRemaining: number;
+  inventory: Clue[];
 }
 
 export interface PlayerInput {

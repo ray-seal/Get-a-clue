@@ -83,6 +83,42 @@ class SocketService {
     this.socket.emit('solveCase', { code }, callback);
   }
 
+  rollDice(
+    code: string,
+    callback: (response: { success: boolean; roll?: number; movementPoints?: number; error?: string }) => void
+  ): void {
+    if (!this.socket) {
+      callback({ success: false, error: 'Not connected' });
+      return;
+    }
+    this.socket.emit('rollDice', { code }, callback);
+  }
+
+  moveStep(
+    code: string,
+    from: { row: number; col: number },
+    to: { row: number; col: number },
+    callback: (response: { success: boolean; movementPointsRemaining?: number; error?: string }) => void
+  ): void {
+    if (!this.socket) {
+      callback({ success: false, error: 'Not connected' });
+      return;
+    }
+    this.socket.emit('moveStep', { code, from, to }, callback);
+  }
+
+  searchRoom(
+    code: string,
+    roomId: string,
+    callback: (response: { success: boolean; found?: boolean; clue?: any; xp?: number; level?: number; error?: string }) => void
+  ): void {
+    if (!this.socket) {
+      callback({ success: false, error: 'Not connected' });
+      return;
+    }
+    this.socket.emit('searchRoom', { code, roomId }, callback);
+  }
+
   onPlayerJoined(callback: (player: Player) => void): void {
     if (this.socket) {
       this.socket.on('playerJoined', callback);
@@ -104,6 +140,18 @@ class SocketService {
   onPlayerDisconnected(callback: (playerId: string) => void): void {
     if (this.socket) {
       this.socket.on('playerDisconnected', callback);
+    }
+  }
+
+  onDiceRolled(callback: (data: { playerId: string; playerName: string; roll: number }) => void): void {
+    if (this.socket) {
+      this.socket.on('diceRolled', callback);
+    }
+  }
+
+  onClueFound(callback: (data: { playerId: string; playerName: string; clue: any; roomId: string }) => void): void {
+    if (this.socket) {
+      this.socket.on('clueFound', callback);
     }
   }
 

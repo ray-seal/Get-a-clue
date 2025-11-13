@@ -3,6 +3,7 @@ import { createServer } from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
 import { customAlphabet } from 'nanoid';
+import { searchRoomForClue } from './data/clues';
 
 const app = express();
 const httpServer = createServer(app);
@@ -20,6 +21,14 @@ const io = new Server(httpServer, {
 // Generate 6-character alphanumeric join codes
 const generateCode = customAlphabet('abcdefghijklmnopqrstuvwxyz0123456789', 6);
 
+interface Clue {
+  id: string;
+  type: string;
+  description: string;
+  xpAward: number;
+  roomId: string;
+}
+
 interface Player {
   id: string;
   name: string;
@@ -30,6 +39,8 @@ interface Player {
   level: number;
   casesSolved: number;
   connected: boolean;
+  movementPointsRemaining: number;
+  inventory: Clue[];
 }
 
 interface Room {
@@ -95,6 +106,8 @@ io.on('connection', (socket) => {
       level: 1,
       casesSolved: 0,
       connected: true,
+      movementPointsRemaining: 0,
+      inventory: [],
     };
 
     room.players.set(socket.id, newPlayer);
@@ -186,6 +199,171 @@ io.on('connection', (socket) => {
       xp: player.xp,
       level: player.level,
     });
+  });
+
+  // Roll dice to get movement points
+  socket.on('rollDice', ({ code }, callback) => {
+    const room = rooms.get(code);
+    
+    if (!room) {
+      callback({ success: false, error: 'Room not found' });
+      return;
+    }
+
+    const player = room.players.get(socket.id);
+    
+    if (!player) {
+      callback({ success: false, error: 'Player not found' });
+      return;
+    }
+
+    // Generate dice roll (1-6)
+    const diceRoll = Math.floor(Math.random() * 6) + 1;
+    
+    // Set movement points
+    player.movementPointsRemaining = diceRoll;
+    room.lastActivity = Date.now();
+
+    console.log(`Player ${player.name} rolled ${diceRoll}`);
+
+    callback({ success: true, roll: diceRoll, movementPoints: diceRoll });
+
+    // Broadcast dice roll to all players in the room
+    io.to(code).emit('diceRolled', {
+      playerId: socket.id,
+      playerName: player.name,
+      roll: diceRoll,
+    });
+  });
+
+  // Move one step (consumes movement points)
+  socket.on('moveStep', ({ code, from, to }, callback) => {
+    const room = rooms.get(code);
+    
+    if (!room) {
+      callback({ success: false, error: 'Room not found' });
+      return;
+    }
+
+    const player = room.players.get(socket.id);
+    
+    if (!player) {
+      callback({ success: false, error: 'Player not found' });
+      return;
+    }
+
+    // Check if player has movement points
+    if (player.movementPointsRemaining <= 0) {
+      callback({ success: false, error: 'No movement points remaining. Roll dice first!' });
+      return;
+    }
+
+    // Validate movement (adjacent tiles only)
+    const rowDiff = Math.abs(to.row - from.row);
+    const colDiff = Math.abs(to.col - from.col);
+    const isAdjacent = (rowDiff === 1 && colDiff === 0) || (rowDiff === 0 && colDiff === 1);
+
+    if (!isAdjacent) {
+      callback({ success: false, error: 'Can only move to adjacent tiles' });
+      return;
+    }
+
+    // Update player position and consume movement point
+    player.row = to.row;
+    player.col = to.col;
+    player.movementPointsRemaining -= 1;
+    room.lastActivity = Date.now();
+
+    callback({ 
+      success: true, 
+      movementPointsRemaining: player.movementPointsRemaining 
+    });
+
+    // Broadcast the move to all players in the room
+    io.to(code).emit('playerMoved', {
+      playerId: socket.id,
+      from,
+      to,
+      movementPointsRemaining: player.movementPointsRemaining,
+    });
+  });
+
+  // Search for clues in a room
+  socket.on('searchRoom', ({ code, roomId }, callback) => {
+    const room = rooms.get(code);
+    
+    if (!room) {
+      callback({ success: false, error: 'Room not found' });
+      return;
+    }
+
+    const player = room.players.get(socket.id);
+    
+    if (!player) {
+      callback({ success: false, error: 'Player not found' });
+      return;
+    }
+
+    if (!roomId) {
+      callback({ success: false, error: 'Not in a valid room' });
+      return;
+    }
+
+    // Get list of already found clue IDs
+    const foundClueIds = player.inventory.map(c => c.id);
+
+    // Search for clue
+    const result = searchRoomForClue(roomId, foundClueIds);
+
+    if (result.found && result.clue) {
+      // Add clue to inventory
+      const clue: Clue = {
+        id: result.clue.id,
+        type: result.clue.type,
+        description: result.clue.description,
+        xpAward: result.clue.xpAward,
+        roomId: roomId,
+      };
+      
+      player.inventory.push(clue);
+      
+      // Award XP
+      player.xp += result.clue.xpAward;
+      player.level = Math.floor(Math.sqrt(player.xp / 100)) + 1;
+      
+      room.lastActivity = Date.now();
+
+      console.log(`Player ${player.name} found clue: ${result.clue.description}`);
+
+      callback({ 
+        success: true, 
+        found: true, 
+        clue,
+        xp: player.xp,
+        level: player.level,
+      });
+
+      // Broadcast clue found to all players
+      io.to(code).emit('clueFound', {
+        playerId: socket.id,
+        playerName: player.name,
+        clue,
+        roomId,
+      });
+
+      // Broadcast updated player stats
+      io.to(code).emit('playerStatsUpdated', {
+        playerId: socket.id,
+        casesSolved: player.casesSolved,
+        xp: player.xp,
+        level: player.level,
+      });
+    } else {
+      callback({ 
+        success: true, 
+        found: false 
+      });
+    }
   });
 
   socket.on('disconnect', () => {
