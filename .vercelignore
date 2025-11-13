@@ -1,0 +1,4 @@
+# Exclude server directory from Vercel deployments
+# The server is a standalone package that should be deployed separately
+server/**
+server

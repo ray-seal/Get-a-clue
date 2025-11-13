@@ -215,6 +215,9 @@ These features are planned for future releases:
 
 ### Server Details
 
+- **Standalone Package** - The server is a completely separate package with its own `package.json`, `tsconfig.json`, and dependencies
+- **Independent Build** - Server can be built and deployed independently from the Next.js client
+- **Excluded from Next Build** - The root TypeScript configuration excludes the server directory to prevent build conflicts
 - Default port: **3001**
 - Uses Socket.IO v4 for real-time communication
 - In-memory room storage (no database required for MVP)
@@ -237,13 +240,69 @@ This app is optimized for Vercel deployment:
 2. Set environment variable: `NEXT_PUBLIC_SERVER_URL` to your server URL
 3. Deploy!
 
+**Note**: The server directory is automatically excluded from Vercel deployments via `.vercelignore`. Only the Next.js client is deployed to Vercel.
+
 ### Server Deployment
 
-The Socket.IO server needs to be deployed separately:
+The Socket.IO server is a standalone package that must be deployed separately to a service that supports long-running Node.js processes.
 
-1. Deploy to a Node.js hosting service (Railway, Render, Heroku, etc.)
-2. Set environment variables: `PORT` and `CLIENT_URL`
-3. Update client's `NEXT_PUBLIC_SERVER_URL` to point to deployed server
+#### Recommended Hosting Services
+
+- **Railway** - Easy deployment with Git integration
+- **Render** - Free tier available, good for hobby projects
+- **Fly.io** - Global edge deployment
+- **DigitalOcean App Platform** - Managed platform with auto-scaling
+- **Heroku** - Classic PaaS option
+
+#### Deployment Steps
+
+1. **Install server dependencies** (if not already done):
+   ```bash
+   cd server
+   npm install
+   ```
+
+2. **Build the server**:
+   ```bash
+   npm run build
+   ```
+   This compiles TypeScript to JavaScript in the `dist` directory.
+
+3. **Deploy to your chosen service**:
+   - Most services can deploy directly from the `server` directory
+   - Use `npm start` as the start command (runs `node dist/index.js`)
+   - Or use `npm run dev` for development environments
+
+4. **Set environment variables**:
+   - `PORT` - Port for the server (default: 3001)
+   - `CLIENT_URL` - URL of your deployed client (e.g., `https://yourapp.vercel.app`)
+
+5. **Update client environment**:
+   - Set `NEXT_PUBLIC_SERVER_URL` in Vercel to point to your deployed server URL
+
+#### Manual Deployment Example
+
+If deploying to a VPS or custom server:
+
+```bash
+# On your server
+cd /path/to/app
+cd server
+npm ci --production
+npm run build
+PORT=3001 CLIENT_URL=https://yourapp.vercel.app npm start
+```
+
+#### Using Process Managers
+
+For production deployments on VPS, use a process manager:
+
+```bash
+# Using PM2
+npm install -g pm2
+cd server
+pm2 start dist/index.js --name "get-a-clue-server"
+```
 
 ## Troubleshooting
 
