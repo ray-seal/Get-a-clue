@@ -1,3 +1,6 @@
+/* Typewriter font */
+@import url('https://fonts.googleapis.com/css2?family=Special+Elite&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -12,9 +15,6 @@
     @apply bg-background text-foreground;
   }
 }
-
-/* Typewriter font */
-@import url('https://fonts.googleapis.com/css2?family=Special+Elite&display=swap');
 
 .typewriter {
   font-family: 'Special Elite', courier, monospace;
