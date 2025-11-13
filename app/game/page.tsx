@@ -40,11 +40,13 @@ function GameContent() {
       level: 1,
       casesSolved: 0,
       connected: true,
+      movementPointsRemaining: 0,
+      inventory: [],
     };
     setPlayers([soloPlayer]);
     setCurrentPlayerId('solo-player');
     setGamePhase('playing');
-    setMessage('Welcome! Use arrow keys or click adjacent tiles to move.');
+    setMessage('Welcome! Roll dice to get movement points, then explore the mansion!');
   }, []);
 
   // Initialize multiplayer game
@@ -107,10 +109,41 @@ function GameContent() {
       setPlayers((prev) =>
         prev.map((p) =>
           p.id === data.playerId
-            ? { ...p, row: data.to.row, col: data.to.col }
+            ? { 
+                ...p, 
+                row: data.to.row, 
+                col: data.to.col,
+                movementPointsRemaining: (data as any).movementPointsRemaining ?? p.movementPointsRemaining
+              }
             : p
         )
       );
+    });
+
+    socketService.onDiceRolled((data) => {
+      setPlayers((prev) =>
+        prev.map((p) =>
+          p.id === data.playerId
+            ? { ...p, movementPointsRemaining: data.roll }
+            : p
+        )
+      );
+      if (data.playerId !== currentPlayerId) {
+        setMessage(`${data.playerName} rolled a ${data.roll}!`);
+      }
+    });
+
+    socketService.onClueFound((data) => {
+      setPlayers((prev) =>
+        prev.map((p) =>
+          p.id === data.playerId
+            ? { ...p, inventory: [...p.inventory, data.clue] }
+            : p
+        )
+      );
+      if (data.playerId !== currentPlayerId) {
+        setMessage(`${data.playerName} found a clue in the ${data.roomId}!`);
+      }
     });
 
     socketService.onPlayerStatsUpdated((data) => {
@@ -122,11 +155,11 @@ function GameContent() {
         )
       );
       if (data.playerId === currentPlayerId) {
-        setMessage(`Case solved! +${XP_PER_CASE} XP`);
+        // Message already shown by action handler
       } else {
         const player = players.find(p => p.id === data.playerId);
         if (player) {
-          setMessage(`${player.name} solved a case!`);
+          setMessage(`${player.name}'s stats updated!`);
         }
       }
     });
@@ -157,15 +190,60 @@ function GameContent() {
     }
   };
 
-  // Handle tile click
+  // Handle dice roll
+  const handleRollDice = useCallback(() => {
+    const currentPlayer = players.find((p) => p.id === currentPlayerId);
+    if (!currentPlayer) return;
+
+    if (gameMode === 'solo') {
+      // Generate dice roll locally
+      const diceRoll = Math.floor(Math.random() * 6) + 1;
+      setPlayers((prev) =>
+        prev.map((p) =>
+          p.id === currentPlayerId
+            ? { ...p, movementPointsRemaining: diceRoll }
+            : p
+        )
+      );
+      setMessage(`You rolled a ${diceRoll}! You can move ${diceRoll} steps.`);
+    } else {
+      // Send to server
+      socketService.rollDice(roomCode, (response) => {
+        if (response.success && response.roll) {
+          setPlayers((prev) =>
+            prev.map((p) =>
+              p.id === currentPlayerId
+                ? { ...p, movementPointsRemaining: response.roll! }
+                : p
+            )
+          );
+          setMessage(`You rolled a ${response.roll}! You can move ${response.roll} steps.`);
+        } else {
+          setMessage(`Failed to roll dice: ${response.error || 'Unknown error'}`);
+        }
+      });
+    }
+  }, [players, currentPlayerId, gameMode, roomCode]);
+
+  // Handle tile click with movement points
   const handleTileClick = useCallback(
     (row: number, col: number) => {
       const currentPlayer = players.find((p) => p.id === currentPlayerId);
       if (!currentPlayer) return;
 
-      // Check if move is valid
-      if (!canMoveToPosition(grid, currentPlayer.row, currentPlayer.col, row, col)) {
-        setMessage('Cannot move there! Only adjacent tiles are accessible.');
+      // Check if player has movement points
+      if (currentPlayer.movementPointsRemaining <= 0) {
+        setMessage('No movement points! Roll dice first.');
+        return;
+      }
+
+      // Check if move is valid (adjacent only)
+      const rowDiff = Math.abs(row - currentPlayer.row);
+      const colDiff = Math.abs(col - currentPlayer.col);
+      const isAdjacent = (rowDiff === 1 && colDiff === 0) || (rowDiff === 0 && colDiff === 1);
+
+      if (!isAdjacent) {
+        setMessage('Can only move to adjacent tiles!');
         return;
       }
 
@@ -174,23 +252,74 @@ function GameContent() {
 
       if (gameMode === 'solo') {
         // Update local state
+        const newMovementPoints = currentPlayer.movementPointsRemaining - 1;
         setPlayers((prev) =>
           prev.map((p) =>
-            p.id === currentPlayerId ? { ...p, row, col } : p
+            p.id === currentPlayerId 
+              ? { ...p, row, col, movementPointsRemaining: newMovementPoints } 
+              : p
           )
         );
-        setMessage(`Moved to ${grid.rooms[row][col].name}`);
+        setMessage(`Moved! ${newMovementPoints} movement points remaining.`);
       } else {
-        // Send move to server
-        socketService.move(roomCode, from, to, (response) => {
-          if (!response.success) {
+        // Send move to server using moveStep
+        socketService.moveStep(roomCode, from, to, (response) => {
+          if (response.success) {
+            setMessage(`Moved! ${response.movementPointsRemaining || 0} movement points remaining.`);
+          } else {
             setMessage(`Move failed: ${response.error || 'Unknown error'}`);
           }
         });
       }
     },
-    [players, currentPlayerId, grid, gameMode, roomCode]
+    [players, currentPlayerId, gameMode, roomCode]
   );
+
+  // Handle search for clues
+  const handleSearchRoom = useCallback((roomId: string) => {
+    const currentPlayer = players.find((p) => p.id === currentPlayerId);
+    if (!currentPlayer) return;
+
+    if (gameMode === 'solo') {
+      // Simple random search for solo mode
+      const success = Math.random() > 0.5;
+      if (success) {
+        const clue = {
+          id: `clue_${Date.now()}`,
+          type: 'Evidence',
+          description: 'A mysterious clue!',
+          xpAward: 25,
+          roomId,
+        };
+        setPlayers((prev) =>
+          prev.map((p) =>
+            p.id === currentPlayerId
+              ? { 
+                  ...p, 
+                  inventory: [...p.inventory, clue],
+                  xp: p.xp + clue.xpAward,
+                  level: calculateLevel(p.xp + clue.xpAward),
+                }
+              : p
+          )
+        );
+        setMessage(`Found a clue: ${clue.description} (+${clue.xpAward} XP)`);
+      } else {
+        setMessage('You searched but found nothing...');
+      }
+    } else {
+      // Send to server
+      socketService.searchRoom(roomCode, roomId, (response) => {
+        if (response.success && response.found && response.clue) {
+          setMessage(`Found a clue: ${response.clue.description} (+${response.clue.xpAward} XP)`);
+        } else if (response.success && !response.found) {
+          setMessage('You searched but found nothing...');
+        } else {
+          setMessage(`Search failed: ${response.error || 'Unknown error'}`);
+        }
+      });
+    }
+  }, [players, currentPlayerId, gameMode, roomCode]);
 
   // Handle solve case
   const handleSolveCase = () => {
@@ -278,14 +407,20 @@ function GameContent() {
                   players={players.filter(p => p.connected)}
                   currentPlayerId={currentPlayerId}
                   onTileClick={handleTileClick}
+                  onSearchRoom={handleSearchRoom}
                   tileSize={64}
+                  showMovementOverlay={true}
                 />
               </div>
 
               {/* Sidebar - takes 1 column */}
               <div className="space-y-4">
                 {/* Player HUD */}
-                <HUD player={currentPlayer} />
+                <HUD 
+                  player={currentPlayer} 
+                  onRollDice={handleRollDice}
+                  canRollDice={currentPlayer.movementPointsRemaining === 0}
+                />
 
                 {/* Actions */}
                 <div className="bg-[#f5f1e8] p-4 rounded-sm worn-edges">

@@ -1,0 +1,43 @@
+<svg width="1920" height="1080" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="1920" height="1080" fill="#d4a574"/>
+  
+  <!-- Grid lines for reference -->
+  <defs>
+    <pattern id="grid" width="64" height="64" patternUnits="userSpaceOnUse">
+      <path d="M 64 0 L 0 0 0 64" fill="none" stroke="#999" stroke-width="0.5" opacity="0.3"/>
+    </pattern>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#grid)" />
+  
+  <!-- Rooms outlines -->
+  <rect x="100" y="100" width="380" height="340" fill="#c89664" stroke="#000" stroke-width="3"/>
+  <text x="290" y="280" font-family="serif" font-size="24" text-anchor="middle" fill="#000">LIBRARY</text>
+  
+  <rect x="520" y="100" width="240" height="240" fill="#c89664" stroke="#000" stroke-width="3"/>
+  <text x="640" y="230" font-family="serif" font-size="20" text-anchor="middle" fill="#000">CONSERVATORY</text>
+  
+  <rect x="1160" y="100" width="240" height="240" fill="#c89664" stroke="#000" stroke-width="3"/>
+  <text x="1280" y="230" font-family="serif" font-size="20" text-anchor="middle" fill="#000">BILLIARD</text>
+  
+  <rect x="1440" y="100" width="380" height="340" fill="#c89664" stroke="#000" stroke-width="3"/>
+  <text x="1630" y="280" font-family="serif" font-size="24" text-anchor="middle" fill="#000">STUDY</text>
+  
+  <rect x="800" y="400" width="320" height="280" fill="#c89664" stroke="#000" stroke-width="3"/>
+  <text x="960" y="550" font-family="serif" font-size="24" text-anchor="middle" fill="#000">FOYER</text>
+  
+  <rect x="100" y="640" width="380" height="340" fill="#c89664" stroke="#000" stroke-width="3"/>
+  <text x="290" y="820" font-family="serif" font-size="24" text-anchor="middle" fill="#000">DINING</text>
+  
+  <rect x="520" y="640" width="340" height="340" fill="#c89664" stroke="#000" stroke-width="3"/>
+  <text x="690" y="820" font-family="serif" font-size="24" text-anchor="middle" fill="#000">KITCHEN</text>
+  
+  <rect x="1060" y="640" width="420" height="340" fill="#c89664" stroke="#000" stroke-width="3"/>
+  <text x="1270" y="820" font-family="serif" font-size="24" text-anchor="middle" fill="#000">BALLROOM</text>
+  
+  <rect x="1520" y="640" width="300" height="340" fill="#c89664" stroke="#000" stroke-width="3"/>
+  <text x="1670" y="820" font-family="serif" font-size="24" text-anchor="middle" fill="#000">LOUNGE</text>
+  
+  <!-- Title -->
+  <text x="960" y="50" font-family="serif" font-size="36" font-weight="bold" text-anchor="middle" fill="#000">Mansion Floorplan</text>
+</svg>
